@@ -4,6 +4,7 @@ services:
     container_name: termsgenius_php
     restart: unless-stopped
     working_dir: /var/www/symfony
+    build: .
     volumes:
       - .:/var/www/symfony
       - ./.docker/php.ini:/usr/local/etc/php/php.ini
