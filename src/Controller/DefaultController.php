@@ -18,15 +18,4 @@ class DefaultController extends AbstractController
     {
         return new JsonResponse(['message' => 'Hello World!']);
     }
-
-    #[Route('/login/register', name: 'register')]
-    public function register(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
-    {
-        $user = new User();
-        $user->setEmail('test@mail.com');
-        $user->setPassword($passwordHasher->hashPassword($user, 'test123'));
-        $entityManager->persist($user);
-        $entityManager->flush();
-        return new JsonResponse(['message' => 'User Created!']);
-    }
 }
