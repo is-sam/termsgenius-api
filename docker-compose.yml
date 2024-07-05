@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/symfony
     build: .
+    user: 1000:1000
     volumes:
       - .:/var/www/symfony
       - ./.docker/php.ini:/usr/local/etc/php/php.ini

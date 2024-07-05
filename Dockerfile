@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
+    git \
+    zip \
+    unzip \
     && docker-php-ext-install pdo pdo_mysql
 
 # Clear cache
