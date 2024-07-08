@@ -12,19 +12,26 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use App\Attribute\UserAware;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(),
-        new GetCollection(),
-        new Post(),
+        new GetCollection(
+            normalizationContext: ['groups' => ['project:read_all']],
+        ),
+        new Post(
+            denormalizationContext: ['groups' => ['project:write']],
+        ),
         new Put(),
         new Patch(),
         new Delete(),
     ],
 )]
+#[UserAware(userFieldName: "user_id")]
 class Project
 {
     #[ORM\Id]
@@ -33,15 +40,20 @@ class Project
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['project:read_all', 'project:write'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['project:write'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(inversedBy: 'projects', cascade: ['persist'])]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
+    #[Groups(['project:read_all'])]
     private ?User $user = null;
 
     #[ORM\Column]
+    #[Groups(['project:read_all'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
