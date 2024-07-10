@@ -31,7 +31,14 @@ class ProjectController extends AbstractController
     #[Route('/{id}', name: 'get', methods: ['GET'])]
     public function get(int $id): JsonResponse
     {
-        $project = $this->projectRepository->find($id);
+        $project = $this->projectRepository->findOneBy([
+            'id' => $id,
+            'user' => $this->getUser(),
+        ]);
+
+        if (!$project) {
+            return new JsonResponse(['error' => 'Project not found'], Response::HTTP_NOT_FOUND);
+        }
 
         return new JsonResponse($this->serialize($project));
     }
