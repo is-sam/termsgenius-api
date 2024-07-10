@@ -76,6 +76,21 @@ class ProjectController extends AbstractController
         return new JsonResponse($this->serialize($project));
     }
 
+    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    public function delete(int $id): JsonResponse
+    {
+        $project = $this->projectRepository->find($id);
+
+        if (!$project) {
+            return new JsonResponse(['error' => 'Project not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->entityManager->remove($project);
+        $this->entityManager->flush();
+
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
+
     protected function serialize(Project $project): array
     {
         return [
