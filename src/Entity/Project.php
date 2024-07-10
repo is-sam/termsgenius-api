@@ -2,36 +2,12 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
 use App\Repository\ProjectRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use ApiPlatform\Metadata\Get;
-use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
-use App\Attribute\UserAware;
-use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ApiResource(
-    operations: [
-        new Get(),
-        new GetCollection(
-            normalizationContext: ['groups' => ['project:read_all']],
-        ),
-        new Post(
-            denormalizationContext: ['groups' => ['project:write']],
-        ),
-        new Put(),
-        new Patch(),
-        new Delete(),
-    ],
-)]
-#[UserAware(userFieldName: "user_id")]
 class Project
 {
     #[ORM\Id]
@@ -40,20 +16,16 @@ class Project
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['project:read_all', 'project:write'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['project:write'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(inversedBy: 'projects', cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
-    #[Groups(['project:read_all'])]
     private ?User $user = null;
 
     #[ORM\Column]
-    #[Groups(['project:read_all'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
@@ -109,12 +81,12 @@ class Project
         return $this->createdAt;
     }
 
-    // public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    // {
-    //     $this->createdAt = $createdAt;
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
     #[ORM\PrePersist]
     public function setCreatedAtValue()
@@ -128,12 +100,12 @@ class Project
         return $this->updatedAt;
     }
 
-    // public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    // {
-    //     $this->updatedAt = $updatedAt;
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
 
-    //     return $this;
-    // }
+        return $this;
+    }
 
     #[ORM\PreUpdate]
     public function setUpdatedAtValue()
