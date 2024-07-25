@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Message;
 use App\Entity\Project;
+use App\Enum\MessageOwner;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -106,6 +108,64 @@ class ProjectController extends AbstractController
             'content' => $project->getContent(),
             'createdAt' => $project->getCreatedAt(),
             'updatedAt' => $project->getUpdatedAt(),
+        ];
+    }
+
+    #[Route('/{id}/messages', name: 'messages', methods: ['GET'])]
+    public function messages(int $id): JsonResponse
+    {
+        $project = $this->projectRepository->findOneBy([
+            'id' => $id,
+            'user' => $this->getUser(),
+        ]);
+
+        if (!$project) {
+            return new JsonResponse(['error' => 'Project not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $messages = array_map(fn ($message) => $this->serializeMessage($message), $project->getMessages()->toArray());
+
+        return new JsonResponse($messages);
+    }
+
+    #[Route('/{id}/messages', name: 'post_message', methods: ['POST'])]
+    public function postMessage(int $id, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $project = $this->projectRepository->find($id);
+
+        if (!$project) {
+            return new JsonResponse(['error' => 'Project not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($data['text'] === null || trim($data['text']) === '') {
+            return new JsonResponse(['error' => 'Text is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (strlen($data['text']) < 3) {
+            return new JsonResponse(['error' => 'Text is too short'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $message = new Message();
+        $message->setText($data['text']);
+        $message->setOwner('user');
+        $message->setCreateAt(new \DateTimeImmutable());
+        $message->setProject($project);
+
+        $this->entityManager->persist($message);
+        $this->entityManager->flush();
+
+        return new JsonResponse($this->serializeMessage($message), Response::HTTP_CREATED);
+    }
+
+    protected function serializeMessage(Message $message): array
+    {
+        return [
+            'id' => $message->getId(),
+            'text' => $message->getText(),
+            'owner' => $message->getOwner(),
+            'createAt' => $message->getCreateAt(),
         ];
     }
 }
