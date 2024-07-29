@@ -42,6 +42,7 @@ class Project
     public function __construct()
     {
         $this->messages = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int

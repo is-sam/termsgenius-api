@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Message;
 use App\Entity\Project;
 use App\Enum\MessageOwner;
+use App\Helper\OpenAIHelper;
 use App\Repository\ProjectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -129,7 +130,7 @@ class ProjectController extends AbstractController
     }
 
     #[Route('/{id}/messages', name: 'post_message', methods: ['POST'])]
-    public function postMessage(int $id, Request $request): JsonResponse
+    public function postMessage(int $id, Request $request, OpenAIHelper $openAIHelper): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -150,13 +151,30 @@ class ProjectController extends AbstractController
         $message = new Message();
         $message->setText($data['text']);
         $message->setOwner('user');
-        $message->setCreateAt(new \DateTimeImmutable());
         $message->setProject($project);
 
         $this->entityManager->persist($message);
         $this->entityManager->flush();
 
-        return new JsonResponse($this->serializeMessage($message), Response::HTTP_CREATED);
+        // send openai message
+        try {
+            $aiResponse = $openAIHelper->ask($project->getContent(), $data['text']);
+        } catch (\Exception $e) {
+            $aiResponse = '[ERROR] I am sorry, I could not process your request. Please contact support.';
+        }
+
+        $aiMessage = new Message();
+        $aiMessage->setText($aiResponse);
+        $aiMessage->setOwner('ai');
+        $aiMessage->setProject($project);
+
+        $this->entityManager->persist($aiMessage);
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'message' => $this->serializeMessage($message),
+            'response' =>$this->serializeMessage($aiMessage),
+        ], Response::HTTP_CREATED);
     }
 
     protected function serializeMessage(Message $message): array
