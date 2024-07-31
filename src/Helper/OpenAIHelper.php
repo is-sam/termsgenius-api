@@ -2,6 +2,7 @@
 
 namespace App\Helper;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class OpenAIHelper
@@ -12,6 +13,7 @@ class OpenAIHelper
         protected string $openAIKey,
         protected string $prompt,
         protected HttpClientInterface $http,
+        protected LoggerInterface $logger,
     ) {
     }
 
@@ -37,6 +39,10 @@ class OpenAIHelper
         ]);
 
         if ($response->getStatusCode() !== 200) {
+            $this->logger->error('Failed to get response from OpenAI', [
+                'status' => $response->getStatusCode(),
+                'content' => $response->getContent(),
+            ]);
             throw new \Exception('Failed to get response from OpenAI');
         }
 
