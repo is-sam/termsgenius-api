@@ -25,16 +25,9 @@ class DashboardController extends AbstractController
         ]);
 
         $numberOfProjects = count($projects);
-        $numberOfMessages = 0;
-        foreach ($projects as $project) {
-            $userMessages = array_filter($project->getMessages()->toArray(), fn($message) => $message->getOwner() === 'user');
-            $numberOfMessages += count($userMessages);
-        }
-        $numberOfLines = 0;
-        foreach ($projects as $project) {
-            $numberOfLines += count(explode("\n", $project->getContent()));
-        }
-        $timeSaved = $numberOfLines * 0.1;
+        $numberOfMessages = $this->countNumberOfMessages($projects);
+        $numberOfLines = $this->countNumberOfLines($projects);
+        $timeSaved = $this->getTimeSaved($numberOfLines);
 
         return new JsonResponse([
             'documents' => $numberOfProjects,
@@ -42,5 +35,63 @@ class DashboardController extends AbstractController
             'lines' => $numberOfLines,
             'timesaved' => $timeSaved,
         ]);
+    }
+
+    protected function countNumberOfMessages(array $projects): int
+    {
+        $numberOfMessages = 0;
+        foreach ($projects as $project) {
+            $numberOfMessages += count(array_filter($project->getMessages()->toArray(), fn($message) => $message->getOwner() === 'user'));
+        }
+
+        return $numberOfMessages;
+    }
+
+    protected function countNumberOfLines(array $projects): int
+    {
+        $numberOfLines = 0;
+        foreach ($projects as $project) {
+            $numberOfLines += $this->countRealLines($project->getContent());
+        }
+
+        return $numberOfLines;
+    }
+
+    protected function getTimeSaved(int $numberOfLines): int
+    {
+        // estimate how much it would take to the user to read each line in hours
+        return $numberOfLines * 3;
+    }
+
+    protected function countRealLines(string $htmlContent): int
+    {
+        // Load HTML content
+        $dom = new \DOMDocument();
+        @$dom->loadHTML($htmlContent);
+
+        // Extract text content
+        $text = $this->extractText($dom);
+
+        // Clean and split text by lines
+        $lines = explode("\n", $text);
+        $realLines = array_filter($lines, fn($line) => trim($line) !== '');
+
+        return count($realLines);
+    }
+
+    protected function extractText(\DOMNode $node): string
+    {
+        $text = '';
+
+        // Traverse child nodes
+        foreach ($node->childNodes as $child) {
+            if ($child instanceof \DOMText) {
+                $text .= $child->wholeText . "\n";;
+            } elseif ($child->nodeType === XML_ELEMENT_NODE && !in_array($child->nodeName, ['script', 'style'])) {
+                $text .= $this->extractText($child);
+            }
+        }
+
+        return $text;
     }
 }
