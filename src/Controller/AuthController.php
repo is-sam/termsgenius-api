@@ -22,11 +22,13 @@ class AuthController extends AbstractController
             return new JsonResponse(['error' => 'Invalid JSON'], 400);
         }
 
+        $firstname = $data['firstname'] ?? null;
+        $lastname = $data['lastname'] ?? null;
         $email = $data['email'] ?? null;
         $password = $data['password'] ?? null;
         $repeatPassword = $data['repeatPassword'] ?? null;
 
-        if (!$email || !$password || !$repeatPassword) {
+        if (!$email || !$password || !$repeatPassword || !$firstname || !$lastname) {
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
@@ -36,6 +38,8 @@ class AuthController extends AbstractController
 
         /** @var User $user */
         $user = new User();
+        $user->setFirstname($firstname);
+        $user->setLastname($lastname);
         $user->setEmail($email);
         $user->setPassword(
             $passwordHasher->hashPassword(
