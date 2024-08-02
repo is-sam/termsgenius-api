@@ -158,7 +158,7 @@ class ProjectController extends AbstractController
 
         // send openai message
         try {
-            $aiResponse = $openAIHelper->ask($project->getContent(), $data['text']);
+            $aiResponse = $openAIHelper->ask($project->getContent(), $project->getMessages()->toArray(), $data['text']);
         } catch (\Exception $e) {
             $aiResponse = '[ERROR] I am sorry, I could not process your request. Please contact support.';
         }

@@ -2,6 +2,7 @@
 
 namespace App\Helper;
 
+use App\Entity\Message;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -17,7 +18,10 @@ class OpenAIHelper
     ) {
     }
 
-    public function ask(string $document, string $message) {
+    /**
+     * @param Message[] $messages
+     */
+    public function ask(string $document, array $messages, string $message) {
         $response = $this->http->request('POST', self::ENDPOINT, [
             'headers' => [
                 'Authorization' => "Bearer $this->openAIKey",
@@ -30,6 +34,10 @@ class OpenAIHelper
                         'role' => 'system',
                         'content' => $this->generatePrompt($document),
                     ],
+                    ...array_map(fn (Message $message) => ([
+                        'role' => $message->getOwner() === 'user' ? 'user' : 'assistant',
+                        'content' => $message->getText(),
+                    ]), $messages),
                     [
                         'role' => 'user',
                         'content' => $message,
