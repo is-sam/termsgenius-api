@@ -36,7 +36,7 @@ class Project
     /**
      * @var Collection<int, Message>
      */
-    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'project')]
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'project', cascade: ['remove'])]
     private Collection $messages;
 
     public function __construct()
