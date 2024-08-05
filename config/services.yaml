@@ -26,3 +26,7 @@ services:
         arguments:
             $openAIKey: '%env(OPENAI_API_KEY)%'
             $prompt: '%env(OPENAI_PROMPT)%'
+
+    App\Security\GoogleAuthenticator:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'

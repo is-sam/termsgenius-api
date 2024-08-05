@@ -53,4 +53,11 @@ class AuthController extends AbstractController
 
         return new JsonResponse(['message' => 'User successfully registered'], 201);
     }
+
+    #[Route('/google', name: 'google', methods: ['POST'])]
+    public function googleLogin()
+    {
+        // This action will never be called, the authenticator handles the logic
+        throw new \Exception('This method should not be directly accessed');
+    }
 }
