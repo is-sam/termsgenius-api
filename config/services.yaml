@@ -22,3 +22,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Helper\OpenAIHelper:
+        arguments:
+            $openAIKey: '%env(OPENAI_API_KEY)%'
+            $prompt: '%env(OPENAI_PROMPT)%'
+
+    App\Security\GoogleAuthenticator:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
